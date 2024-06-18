@@ -41,7 +41,7 @@
             const generalSaleDate = new Date(selectedDate);
             generalSaleDate.setDate(selectedDate.getDate() - 28 - 1); //因為往前推算28天是到開賣當天的0點0分，容易搞錯是哪一天的過12點搶票，所以多減一天
 
-            document.getElementById('general').innerText = '一般時段(乘車前28天開賣): ' + generalSaleDate.toLocaleDateString() + '過晚上12點';
+            document.getElementById('general').innerText = '一般時段(乘車前28天開賣): ' + generalSaleDate.toLocaleDateString() + ' 過晚上12點搶票.';
 
             const selectedDay = selectedDate.getDay();
             const previousFriday = new Date(selectedDate);
