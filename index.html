@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>高鐵早鳥票開賣時間</title>
+</head>
+<body>
+    <h1>高鐵早鳥票開賣時間</h1>
+    <p id="general">一般時段：乘車前28天開賣</p>
+    <p id="weekend">週末時段：週五開賣週五、週六、週日車票</p>
+    <p id="holiday">連續假期：請查詢官網</p>
+    <script>
+        // 計算高鐵早鳥票開賣時間
+        function calculateEarlyBirdTime() {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const generalSaleDate = new Date(today);
+            generalSaleDate.setDate(today.getDate() + 28);
+
+            // 一般時段開賣時間
+            document.getElementById('general').innerText += ' - ' + generalSaleDate.toLocaleDateString();
+
+            // 週末時段開賣時間
+            const nextFriday = new Date(today);
+            nextFriday.setDate(today.getDate() + (5 - today.getDay() + 7) % 7);
+            document.getElementById('weekend').innerText += ' - ' + nextFriday.toLocaleDateString();
+
+            // 連續假期
+            const holidayDates = ['10/28', '12/2'];
+            document.getElementById('holiday').innerText += ' - ' + holidayDates.join(', ');
+        }
+
+        // 執行計算
+        calculateEarlyBirdTime();
+    </script>
+</body>
+</html>
