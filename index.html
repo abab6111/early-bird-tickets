@@ -15,41 +15,47 @@
             font-size: 1.2em;
             margin: 10px 0;
         }
+        input[type="date"] {
+            font-size: 1.2em;
+            padding: 5px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <h1>高鐵早鳥票開賣時間</h1>
+    <label for="selectedDate">選擇乘車日期:</label>
+    <input type="date" id="selectedDate">
+    <button onclick="calculateEarlyBirdTime()">計算開賣時間</button>
     <p id="general">一般時段：乘車前28天開賣</p>
     <p id="weekend">週末時段：週五開賣週五、週六、週日車票</p>
     <p id="holiday">連續假期：請查詢官網</p>
     <script>
         function calculateEarlyBirdTime() {
-            const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            const generalSaleDate = new Date(today);
-            generalSaleDate.setDate(today.getDate() + 28);
-
-            document.getElementById('general').innerText += ' - ' + generalSaleDate.toLocaleDateString();
-
-            // 計算最近的週五
-            let nextFriday = new Date(today);
-            nextFriday.setDate(today.getDate() + (5 - today.getDay() + 7) % 7);
-            // 如果今天是週五，則表示這個週五已經過了，要加7天
-            if (today.getDay() === 5) {
-                nextFriday.setDate(today.getDate() + 7);
+            const selectedDate = new Date(document.getElementById('selectedDate').value);
+            if (isNaN(selectedDate)) {
+                alert('請選擇有效的日期');
+                return;
             }
-            const nextSaturday = new Date(nextFriday);
-            nextSaturday.setDate(nextFriday.getDate() + 1);
-            const nextSunday = new Date(nextFriday);
-            nextSunday.setDate(nextFriday.getDate() + 2);
 
-            document.getElementById('weekend').innerText += ' - ' + nextFriday.toLocaleDateString() + ', ' + nextSaturday.toLocaleDateString() + ', ' + nextSunday.toLocaleDateString();
+            const generalSaleDate = new Date(selectedDate);
+            generalSaleDate.setDate(selectedDate.getDate() - 28);
+
+            document.getElementById('general').innerText = '一般時段：乘車前28天開賣 - ' + generalSaleDate.toLocaleDateString();
+
+            const selectedDay = selectedDate.getDay();
+            const previousFriday = new Date(selectedDate);
+            previousFriday.setDate(selectedDate.getDate() - (selectedDay + 2) % 7 - 1);
+            const previousSaturday = new Date(previousFriday);
+            previousSaturday.setDate(previousFriday.getDate() + 1);
+            const previousSunday = new Date(previousFriday);
+            previousSunday.setDate(previousFriday.getDate() + 2);
+
+            document.getElementById('weekend').innerText = '週末時段：週五開賣週五、週六、週日車票 - ' + previousFriday.toLocaleDateString() + ', ' + previousSaturday.toLocaleDateString() + ', ' + previousSunday.toLocaleDateString();
 
             const holidayDates = ['10/28', '12/2'];
-            document.getElementById('holiday').innerText += ' - ' + holidayDates.join(', ');
+            document.getElementById('holiday').innerText = '連續假期：請查詢官網 - ' + holidayDates.join(', ');
         }
-
-        calculateEarlyBirdTime();
     </script>
 </body>
 </html>
