@@ -1,1 +1,77 @@
+name: Scrape and Update Web Content
+
+on:
+  schedule:
+    - cron: '0 1 * * *'  # 每天凌晨 1 点执行，使用 UTC 时间
+  workflow_dispatch:
+
+jobs:
+  scrape_and_update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4
+
+      - name: Scrape website content and convert to JSON
+        run: |
+          import requests
+          from bs4 import BeautifulSoup
+          import json
+
+          # Fetch the webpage
+          url = 'https://www.thsrc.com.tw/ArticleContent/60dbfb79-ac20-4280-8ffb-b09e7c94f043'
+          response = requests.get(url)
+          response.encoding = 'utf-8'
+
+          # Parse the HTML
+          soup = BeautifulSoup(response.text, 'html.parser')
+
+          # Find the target table
+          table = soup.find('table', {'class': 'table', 'summary': '每年台灣連續假日/重要節日/疏運期開放高鐵車票購買日期清單'})
+
+          # Extract the table headers
+          headers = [th.text.strip() for th in table.find('thead').find_all('th')]
+
+          # Extract the table rows
+          rows = []
+          for tr in table.find('tbody').find_all('tr'):
+              cols = tr.find_all('td')
+              cols = [col.text.strip() for col in cols]
+              rows.append(cols)
+
+          # Convert the table data to JSON format
+          data_list = []
+          for row in rows:
+              row_data = {headers[i]: row[i] for i in range(len(headers))}
+              data_list.append(row_data)
+
+          # Print JSON data
+          json_data = json.dumps(data_list, ensure_ascii=False, indent=4)
+          print(json_data)
+
+          # Save JSON data to file
+          with open('docs/THSR_Holiday.json', 'w', encoding='utf-8') as json_file:
+              json_file.write(json_data)
+        shell: python
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add docs/THSR_Holiday.json
+          git commit -m 'Update holiday data'
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
