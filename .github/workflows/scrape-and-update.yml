@@ -68,13 +68,25 @@ jobs:
               json_file.write(json_data)
         shell: python
 
-      - name: Commit and push changes
+      - name: Configure git
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Check if there are changes
+        id: git_diff
+        run: |
+          if [[ -z $(git status --porcelain) ]]; then
+            echo "::set-output name=changes::false"
+          else
+            echo "::set-output name=changes::true"
+          fi
+
+      - name: Commit and push changes
+        if: steps.git_diff.outputs.changes == 'true'
+        run: |
           git add docs/THSR_Holiday.json
           git commit -m 'Update holiday data'
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
