@@ -445,6 +445,8 @@
 
         const saleDateStr = formatDateWithWeekday(formattedGeneralSaleDate) + ' 過晚上12點搶票.';
         updateSaleDateInfo(saleDateStr); // 更新 .task > p 內容
+        const infoIconElement = document.querySelector('.time .fas.fa-flag'); 
+        infoIconElement.style.color = 'red'; //改紅旗，代表高鐵特別定開賣時間
     }
 
     function updateSaleDateInfo(dateStr) {
