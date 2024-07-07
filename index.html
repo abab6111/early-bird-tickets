@@ -1,98 +1,470 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <title>高鐵早鳥票開賣時間</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+<html>
+ <head>
+  <title>
+   Check THSR Availability
+  </title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <style>
+   body {
+            font-family: Arial, sans-serif;
             background-color: #f5f5f5;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             height: 100vh;
         }
-        h1 {
-            font-size: 2.5em;
+        .container {
+            background-color: white;
+            border-radius: 20px;
+            width: 375px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header img {
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+        }
+        .header h1 {
+            font-size: 18px;
+            margin: 0;
+            flex-grow: 1;
+            text-align: center;
+        }
+        .header .icon {
+            font-size: 20px;
+        }
+        .section-title {
+            font-size: 16px;
+            margin: 20px 0 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .card {
+            background-color: #d3d3d3;
+            border-radius: 10px;
+            padding: 20px;
             margin-bottom: 20px;
-            color: #333;
         }
-        p {
-            font-size: 1.2em;
-            margin: 10px 0;
-            color: #666;
+        .card h2 {
+            font-size: 18px;
+            margin: 0 0 10px;
         }
-        input[type="date"] {
-            font-size: 1.2em;
-            padding: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transition: border 0.3s, box-shadow 0.3s;
+        .card p {
+            font-size: 14px;
+            margin: 0;
         }
-        input[type="date"]:focus {
-            border: 1px solid #007aff;
-            box-shadow: 0 0 8px rgba(0, 122, 255, 0.4);
-            outline: none;
+        .card .info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        button {
-            font-size: 1.2em;
+        .card .info .progress {
+            width: 70%;
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-right: 10px;
+        }
+        .card .info .progress .bar {
+            width: 70%;
+            height: 100%;
+            background-color: #a0a0a0;
+        }
+        .card .info .percentage {
+            font-size: 14px;
+        }
+        .card .info .icon {
+            font-size: 20px;
+        }
+        /* 確保 datepicker 具有 button 樣式 */
+        .datepicker {
+            background-color: black;
+            color: rgba(255, 255, 255, 0.7);;
             padding: 10px 20px;
             border: none;
-            border-radius: 8px;
-            background-color: #007aff;
-            color: white;
+            border-radius: 5px;
+            font-size: 20px;
             cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transition: background-color 0.3s, box-shadow 0.3s;
+            display: block;
+            width: 100%;
+            text-align: center;
+            margin-top: 10px;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            position: relative;
         }
-        button:hover {
-            background-color: #005bb5;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        .datepicker::before {
+            content: 'Select date';
+            color: rgba(255, 255, 255, 0.7);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
         }
-    </style>
 
-</head>
-<body>
-    <h1>高鐵早鳥票開賣時間3</h1>
-    <label for="selectedDate">選擇乘車日期:</label>
-    <input type="date" id="selectedDate" onchange="calculateEarlyBirdTime()">
-    <p id="general">一般時段(乘車前28天開賣):</p>
-    <p id="weekend">週末時段(週五開賣週五、週六、週日車票)：</p>
-    <p id="holiday">連續假期：請查詢官網</p>
-    <script>
-        function calculateEarlyBirdTime() {
-            const selectedDate = new Date(document.getElementById('selectedDate').value);
-            if (isNaN(selectedDate)) {
-                alert('請選擇有效的日期');
-                return;
+        .datepicker:focus::before,
+        .datepicker:valid::before {
+            display: none;
+        }
+
+        .datepicker::-webkit-calendar-picker-indicator {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            filter: invert(1);
+            opacity: 0.8;
+        }
+
+        .datepicker::-webkit-clear-button,
+        .datepicker::-webkit-inner-spin-button {
+            display: none;
+        }
+        .dots {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .dots span {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background-color: #d3d3d3;
+            border-radius: 50%;
+            margin: 0 5px;
+        }
+        .dots span.active {
+            background-color: #a0a0a0;
+        }
+        .task {
+            background-color: #d3d3d3;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 10px;
+        }
+        .task h3 {
+            font-size: 16px;
+            margin: 0 0 10px;
+        }
+        .task p {
+            font-size: 14px;
+            margin: 0;
+        }
+        .task .info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .task .info .icon {
+            font-size: 20px;
+        }
+        .task .info .time {
+            font-size: 14px;
+        }
+  </style>
+ </head>
+ <body>
+  <div class="container">
+   <div class="header">
+    <img alt="Profile picture of a train" height="50" src="data:image/jpeg;base64,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" width="50"/>
+    <h1>
+     Check THSR availability
+    </h1>
+    <i class="fas fa-calendar-alt icon">
+    </i>
+   </div>
+   <div class="section-title">
+   </div>
+   <div class="card">
+    <h2>
+     選擇乘車日期:
+    </h2>
+    <div class="info">
+     <div class="progress">
+      <div class="bar">
+      </div>
+     </div>
+     <span class="percentage">
+      70%
+     </span>
+     <i class="fas fa-info-circle icon">
+     </i>
+    </div>
+        <input type="date" class="datepicker" id="selectedDate" onchange="handleDateChange()"/>
+   </div>
+   <div class="dots">
+    <span class="active">
+    </span>
+   </div>
+   <div class="section-title">
+    <span>
+        <i class="fa-solid fa-cat">
+        </i>
+    </span>
+   </div>
+   <div class="task">
+    <h3>
+     開賣日期:
+    </h3>
+    <p>
+     Get detail after you pick date.
+    </p>
+    <div class="info">
+     <span class="time">
+      <i class="fas fa-flag">
+      </i>
+      Tomorrow, 9:00 AM
+     </span>
+     <i class="fa-solid fa-shield-cat">
+     </i>
+    </div>
+   </div>
+  </div>
+  <script>
+    // 定義一個全局的星期幾對應表
+    const weekDays = ["日", "一", "二", "三", "四", "五", "六"];
+
+    function formatDateWithWeekday(dateStr) {
+        // 解析日期字串
+        const year = parseInt(dateStr.substring(0, 4), 10);
+        const month = parseInt(dateStr.substring(4, 6), 10) - 1; // 月份從0開始
+        const day = parseInt(dateStr.substring(6, 8), 10);
+
+        // 建立 Date 物件
+        const date = new Date(year, month, day);
+
+        // 計算星期幾
+        const weekDay = weekDays[date.getDay()];
+
+        // 返回格式化後的字串
+        return `${dateStr}（${weekDay}）`;
+    }
+    function formatDateToYYYYMMDD(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份 +1 因為月份從0開始
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}${month}${day}`;
+    }
+    // fetchHolidayData() 是到 github 上的網址查國定假日的 JSON 資料
+    async function fetchHolidayData(year) {
+        const url = `https://cdn.jsdelivr.net/gh/ruyut/TaiwanCalendar/data/${year}.json`;
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        return data;
+    }
+    async function fetchTHSRHolidayData() {
+        const url = `https://raw.githubusercontent.com/abab6111/early-bird-tickets/main/docs/THSR_Holiday.json`;
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        return data;
+    }
+
+    function checkHolidayPeriods(formattedDate, holidays) {
+        // 使用 for...of 迴圈遍歷每個 holidays 陣列中的假期資料。
+        for (const holiday of holidays) {
+            // holiday['疏運期間'] 取當前假期的 "疏運期間" 字串，例如 "2023/12/29(五) ~ 2024/01/02(二)"。.split(' ~ ') 將 "疏運期間" 字串按 " ~ " 分割成開始日期和結束日期的兩個字串。
+            // .map(dateStr => { ... }) 迴圈處理每個日期字串：dateStr.split(/[\(\)\ \/-]/) 使用正則表達式將日期字串拆分成 [year, month, day]，忽略括號和其他字符。year, month, day 使用數組解構賦值，取得年份、月份和日期。
+            const periods = holiday['疏運期間'].split(' ~ ').map(dateStr => { 
+                /*
+                使用 split(' ~ ') 方法分割字串：
+                const periods = holiday['疏運期間'].split(' ~ ');
+                原字串 "2023/12/29(五) ~ 2024/01/02(二)" 被分割成兩個子字串：
+                "2023/12/29(五)"
+                "2024/01/02(二)"
+                此時 periods 變數是一個包含兩個元素的陣列：
+                periods = ["2023/12/29(五)", "2024/01/02(二)"];
+                使用正則表示式 /[\(\)\ \/-]/ 拆分字串，分隔符號包含了括號、空格、斜槓和短線。
+                將 "2023/12/29(五)" 拆分為：
+                ["2023", "12", "29", "五"]
+                slice(0, 3)：
+                取前三個元素 ["2023", "12", "29"] 作為年、月、日部分。
+                */
+                const [year, month, day] = dateStr.split(/[\(\)\ \/-]/).slice(0, 3);
+                return new Date(year, month - 1, day); // 月份要減1因為JS月份從0開始
+            });
+            // 整理好的日期 Start and End Periods
+            const startDate = periods[0];
+            const endDate = periods[1];
+            // 要接受檢查的賣票時間日期
+            const dateToCheck = new Date(
+                formattedDate.substring(0, 4),
+                formattedDate.substring(4, 6) - 1,
+                formattedDate.substring(6, 8)
+            );
+
+            if (dateToCheck >= startDate && dateToCheck <= endDate) {
+                // 解析 "開放預售日期" 並轉換成 "YYYYMMDD" 格式
+                const presaleDateStr = holiday['開放預售日期'].split(' ')[0]; // 例如 "2023/12/01 (五)"
+                const [presaleYear, presaleMonth, presaleDay] = presaleDateStr.split('/');
+                const formattedPresaleDate = `${presaleYear}${presaleMonth.padStart(2, '0')}${presaleDay.padStart(2, '0')}`;
+                return formattedPresaleDate;
             }
-             // 取得選擇的年份並生成新的網址
-            const selectedYear = selectedDate.getFullYear();
-            const url = `https://cdn.jsdelivr.net/gh/ruyut/TaiwanCalendar/data/${selectedYear}.json`;
-            console.log(url); // 輸出生成的網址
-
-            const generalSaleDate = new Date(selectedDate);
-            generalSaleDate.setDate(selectedDate.getDate() - 28 - 1); //因為往前推算28天是到開賣當天的0點0分，容易搞錯是哪一天的過12點搶票，所以多減一天
-            document.getElementById('general').innerText = '一般時段(乘車前28天開賣): ' + generalSaleDate.toLocaleDateString() + ' 過晚上12點搶票.';
-
-            const selectedDay = selectedDate.getDay();
-            const previousFriday = new Date(selectedDate);
-            previousFriday.setDate(selectedDate.getDate() - (selectedDay + 2) % 7 - 1);
-            const previousSaturday = new Date(previousFriday);
-            previousSaturday.setDate(previousFriday.getDate() + 1);
-            const previousSunday = new Date(previousFriday);
-            previousSunday.setDate(previousFriday.getDate() + 2);
-
-            document.getElementById('weekend').innerText = '週末時段：週五開賣週五、週六、週日車票 - ' + previousFriday.toLocaleDateString() + ', ' + previousSaturday.toLocaleDateString() + ', ' + previousSunday.toLocaleDateString();
-
-            const holidayDates = ['10/28', '12/2'];
-            document.getElementById('holiday').innerText = '連續假期：請查詢官網 - ' + holidayDates.join(', ');
         }
-    </script>
-</body>
+
+        return false;
+    }
+
+    async function handleDateChange() {
+        const selectedDate = new Date(document.getElementById('selectedDate').value);
+        if (isNaN(selectedDate)) {
+            alert('請選擇有效的日期');
+            return;
+        }
+        //取得選擇日期的年月日，再Format格式
+        const year = selectedDate.getFullYear();
+        const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+        const day = String(selectedDate.getDate()).padStart(2, '0');
+        const formattedDate = `${year}${month}${day}`;
+
+        try {
+            //分別取 選擇年 和 選擇年-1 的假日資料
+            const ThisYearData = await fetchHolidayData(year);
+            const LastYearData = await fetchHolidayData(year-1);
+            const THSRHolidayData = await fetchTHSRHolidayData();
+            let foundDate = formattedDate;
+
+            while (true) {
+                // 檢查 formattedDate 是否在 THSRHolidayData 的疏運期間內
+                const presaleDate = checkHolidayPeriods(foundDate, THSRHolidayData);
+                if (presaleDate) {
+                    console.log(`選擇日期 ${foundDate} 在疏運期間內，開放預售日期為: ${presaleDate}`);
+                    OfficialAnnouncementDate(presaleDate)
+                    break;
+                }
+
+                let dateInfo;
+                // 檢查資料的開頭年份是不是今年的，不是的話會從去年資料開始檢查
+                if (foundDate.startsWith(year.toString())) {
+                    // 當前年份資料
+                    dateInfo = ThisYearData.find(item => item.date === foundDate);
+                } else {
+                    // 前一年資料
+                    dateInfo = LastYearData.find(item => item.date === foundDate);
+                }
+
+                if (!dateInfo) {
+                    console.log(`找不到日期: ${foundDate}`);
+                    break;
+                }
+                if (!dateInfo.isHoliday) {
+                    console.log(`最近的非假期工作日是: ${foundDate}`);
+                    calculateEarlyBirdTime(foundDate); // 計算早鳥票開賣時間
+                    break;
+                }
+                // 把 20241119 轉成日期格式，這樣才可以直接做日期的減法，第三行格式化回 YYYYMMDD 字符串，JavaScript 的月份是基於 0 的
+                const tempDate = new Date(foundDate.substring(0, 4), foundDate.substring(4, 6) - 1, foundDate.substring(6, 8));
+                tempDate.setDate(tempDate.getDate() - 1);
+                foundDate = `${tempDate.getFullYear()}${String(tempDate.getMonth() + 1).padStart(2, '0')}${String(tempDate.getDate()).padStart(2, '0')}`;
+            }
+
+        } catch (error) {
+            console.error('取得資料發生錯誤:', error);
+            document.getElementById('general').innerText = 'No Data.....' ;
+        }
+    }
+    function calculateEarlyBirdTime(foundDate) {
+        // 取得我們最近的非假日日期
+        const selectedDate = new Date(
+            foundDate.substring(0, 4),
+            foundDate.substring(4, 6) - 1,
+            foundDate.substring(6, 8)
+        );
+        
+        const generalSaleDate = new Date(selectedDate);
+        generalSaleDate.setDate(selectedDate.getDate() - 28 - 1); //因為往前推算28天是到開賣當天的0點0分，容易搞錯是哪一天的過12點搶票，所以多減一天
+        const formattedGeneralSaleDate = formatDateToYYYYMMDD(generalSaleDate); // 轉成 YYYYMMDD 格式
+        // 計算選擇日期與今天的差距
+        const today = new Date();
+        const daysBetween = calculateDaysBetween(today, generalSaleDate);
+        let daysMessage = '';
+        if (daysBetween > 0) {
+            daysMessage = '還有 ' + daysBetween + ' 天';
+        } else if (daysBetween < 0) {
+            daysMessage = '已經過了 ' + Math.abs(daysBetween) + ' 天';
+        } else {
+            daysMessage = '就是今天！';
+        }
+
+        // 更新 .time 中的文字內容
+        const timeElement = document.querySelector('.info .time');
+        if (timeElement) {
+            timeElement.innerHTML = '<i class="fas fa-flag"></i> ' + daysMessage;
+        }
+
+        const saleDateStr = formatDateWithWeekday(formattedGeneralSaleDate) + ' 過晚上12點搶票.';
+        updateSaleDateInfo(saleDateStr); // 更新 .task > p 內容,開賣日期
+    }
+    function OfficialAnnouncementDate(foundDate) {
+        // 取得我們特殊的售票日期
+        console.log(foundDate)
+        const selectedDate = new Date(
+            foundDate.substring(0, 4),
+            foundDate.substring(4, 6) - 1,
+            foundDate.substring(6, 8)
+        );
+
+        const generalSaleDate = new Date(selectedDate);
+        generalSaleDate.setDate(selectedDate.getDate() - 1); // 官網公布的開賣時間，容易搞錯是哪一天的過12點搶票，所以多減一天
+        // console.log(generalSaleDate) // 這個格式 Thu Nov 30 2023 00:00:00 GMT+0800 (台北標準時間)
+        const formattedGeneralSaleDate = formatDateToYYYYMMDD(generalSaleDate); // 轉成 YYYYMMDD 格式
+        // 計算選擇日期與今天的差距
+        const today = new Date();
+        const daysBetween = calculateDaysBetween(today, generalSaleDate);
+        let daysMessage = '';
+        if (daysBetween > 0) {
+            daysMessage = '還有 ' + daysBetween + ' 天';
+        } else if (daysBetween < 0) {
+            daysMessage = '已經過了 ' + Math.abs(daysBetween) + ' 天';
+        } else {
+            daysMessage = '就是今天！';
+        }
+
+        // 更新 .time 中的文字內容
+        const timeElement = document.querySelector('.info .time');
+        if (timeElement) {
+            timeElement.innerHTML = '<i class="fas fa-flag"></i> ' + daysMessage;
+        }
+
+        const saleDateStr = formatDateWithWeekday(formattedGeneralSaleDate) + ' 過晚上12點搶票.';
+        updateSaleDateInfo(saleDateStr); // 更新 .task > p 內容
+    }
+
+    function updateSaleDateInfo(dateStr) {
+        const taskElement = document.querySelector('.task > p');
+        if (taskElement) {
+            taskElement.innerText = dateStr;
+        }
+        const infoIconElement = document.querySelector('.info .fa-solid.fa-shield-cat');
+        if (infoIconElement) {
+            // infoIconElement.style.color = 'red'; // 例如修改圖示顔色
+            // 可以添加更多的修改，例如替換圖示
+            infoIconElement.classList.remove('fa-shield-cat');
+            infoIconElement.classList.add('fa-check-circle');
+        }
+    }
+    function calculateDaysBetween(date1, date2) {
+        const oneDay = 24 * 60 * 60 * 1000; // 一天的毫秒數
+        const diffInTime = date2 - date1; // 兩個日期的毫秒差距
+        const diffInDays = Math.ceil(diffInTime / oneDay); // 將毫秒轉換為天
+        return diffInDays;
+    }
+</script>
+ </body>
 </html>
