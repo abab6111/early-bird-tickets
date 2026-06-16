@@ -86,20 +86,12 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
-      - name: Check if there are changes
-        id: git_diff
-        run: |
-          if [[ -z $(git status --porcelain) ]]; then
-            echo "::set-output name=changes::false"
-          else
-            echo "::set-output name=changes::true"
-          fi
-
+      # 修改重點：刪除原本的 Check 步驟，並加上 --allow-empty
       - name: Commit and push changes
-        if: steps.git_diff.outputs.changes == 'true'
         run: |
           git add docs/THSR_Holiday.json
-          git commit -m 'Update holiday data'
+          # 如果資料有變更，正常提交；如果資料沒變更，會提交一個記錄時間點的空 Commit
+          git commit --allow-empty -m "Scheduled update: $(date +'%Y-%m-%d %H:%M:%S') (UTC)"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
