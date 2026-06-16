@@ -5,7 +5,7 @@ permissions:
 
 on:
   schedule:
-    - cron: '0 1 * * *'  # 每天凌晨 1 点执行，使用 UTC 时间
+    - cron: '0 1 * * *'  # 每天凌晨 1 點執行，使用 UTC 時間
   workflow_dispatch:
 
 jobs:
@@ -14,10 +14,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -32,25 +32,25 @@ jobs:
           from bs4 import BeautifulSoup
           import json
 
-          # Fetch the webpage
-          url = 'https://www.thsrc.com.tw/ArticleContent/60dbfb79-ac20-4280-8ffb-b09e7c94f043'
+          # 擷取網頁資料
+          url = 'https://thsrc.com.tw'
           response = requests.get(url)
           response.encoding = 'utf-8'
 
-          # Parse the HTML
+          # 解析 HTML
           soup = BeautifulSoup(response.text, 'html.parser')
 
-          # Find the target table
+          # 尋找目標表格
           table = soup.find_all('table', {'class': 'table', 'summary': '每年台灣連續假日/重要節日/疏運期開放高鐵車票購買日期清單'})
 
-          # Extract the table headers
+          # 擷取表格欄位名稱（表頭）
           headers = []
           for tbl in table:
               thead = tbl.find('thead')
               if thead:
                   headers.append([th.text.strip() for th in thead.find_all('th')])
 
-          # Extract the table rows
+          # 擷取表格資料列
           rows = []
           for tbl in table:
               tbody = tbl.find('tbody')
@@ -60,23 +60,23 @@ jobs:
                       cols = [col.text.strip() for col in cols]
                       rows.append(cols)
 
-          # Convert the table data to JSON format
+          # 將表格資料轉換為 JSON 格式
           data_list = []
           for row in rows:
-              if len(row) == len(headers[0]):  # 確保行的長度與表頭的長度一致
+              if len(row) == len(headers[0]):  # 確保資料列長度與表頭長度一致
                   try:
                       row_data = {str(headers[0][i]): str(row[i]) for i in range(len(headers[0]))}
                       data_list.append(row_data)
                   except Exception as e:
-                      print(f"錯誤: {e}，行: {row}，表頭: {headers[0]}")
+                      print(f"錯誤: {e}，資料列: {row}，表頭: {headers[0]}")
               else:
                   print(f"Len(row) 與 len(headers[0])不一致:")
 
-          # Print JSON data
+          # 印出 JSON 資料
           json_data = json.dumps(data_list, ensure_ascii=False, indent=4)
           print(json_data)
 
-          # Save JSON data to file
+          # 將 JSON 資料儲存至檔案
           with open('docs/THSR_Holiday.json', 'w', encoding='utf-8') as json_file:
               json_file.write(json_data)
         shell: python
@@ -84,13 +84,11 @@ jobs:
       - name: Configure git
         run: |
           git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git config --global user.email 'github-actions[bot]@://github.com'
 
-      # 修改重點：刪除原本的 Check 步驟，並加上 --allow-empty
       - name: Commit and push changes
         run: |
           git add docs/THSR_Holiday.json
-          # 如果資料有變更，正常提交；如果資料沒變更，會提交一個記錄時間點的空 Commit
           git commit --allow-empty -m "Scheduled update: $(date +'%Y-%m-%d %H:%M:%S') (UTC)"
           git push
         env:
