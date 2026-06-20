@@ -86,20 +86,18 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
-      - name: Check if there are changes
-        id: git_diff
+      - name: Update keepalive timestamp
         run: |
-          if [[ -z $(git status --porcelain) ]]; then
-            echo "::set-output name=changes::false"
-          else
-            echo "::set-output name=changes::true"
-          fi
+          # 建立或更新一個時間戳記檔案，確保每天都有檔案被更動
+          date > keepalive.txt
 
       - name: Commit and push changes
-        if: steps.git_diff.outputs.changes == 'true'
         run: |
-          git add docs/THSR_Holiday.json
-          git commit -m 'Update holiday data'
+          # 把爬蟲抓下來的 JSON 和時間戳記檔案一起加入
+          git add docs/THSR_Holiday.json keepalive.txt
+          
+          # 進行 Commit。加上 || true 防止有任何例外狀況導致 Action 報錯中斷
+          git commit -m 'Auto update holiday data and keepalive timestamp' || true
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
