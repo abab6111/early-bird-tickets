@@ -24,71 +24,94 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests beautifulsoup4
+          pip install requests beautifulsoup4 urllib3
 
       - name: Scrape website content and convert to JSON
         run: |
           import requests
           from bs4 import BeautifulSoup
           import json
+          from requests.adapters import HTTPAdapter
+          from urllib3.util import Retry
 
-          # 擷取網頁資料
           url = 'https://thsrc.com.tw'
-          response = requests.get(url)
-          response.encoding = 'utf-8'
+          response = None
 
-          # 解析 HTML
-          soup = BeautifulSoup(response.text, 'html.parser')
+          # 建立自動重試機制，減少 DNS 偶發性失敗
+          session = requests.Session()
+          retry_strategy = Retry(
+              total=5,
+              backoff_factor=2,
+              status_forcelist=[500, 502, 503, 504],
+              raise_on_status=False
+          )
+          adapter = HTTPAdapter(max_retries=retry_strategy)
+          session.mount("https://", adapter)
+          session.mount("http://", adapter)
 
-          # 尋找目標表格
-          table = soup.find_all('table', {'class': 'table', 'summary': '每年台灣連續假日/重要節日/疏運期開放高鐵車票購買日期清單'})
+          # 完整包裹網路請求，確保任何錯誤都不會中斷 Github Action
+          try:
+              # 修正關鍵：改用帶有重試機制的 session 物件，並加上 30 秒逾時
+              response = session.get(url, timeout=30)
+              response.encoding = 'utf-8'
+              response.raise_for_status()
+          except Exception as e:
+              print(f"警告: 連線至高鐵網站失敗 (可能是網路波動或DNS問題): {e}")
+              print("為了維持 GitHub 活躍度，本次執行將跳過 JSON 更新，直接進入空 Commit 流程。")
 
-          # 擷取表格欄位名稱（表頭）
-          headers = []
-          for tbl in table:
-              thead = tbl.find('thead')
-              if thead:
-                  headers.append([th.text.strip() for th in thead.find_all('th')])
+          # 只有成功取得回應才進行 HTML 解析
+          if response is not None:
+              try:
+                  soup = BeautifulSoup(response.text, 'html.parser')
+                  table = soup.find_all('table', {'class': 'table', 'summary': '每年台灣連續假日/重要節日/疏運期開放高鐵車票購買日期清單'})
 
-          # 擷取表格資料列
-          rows = []
-          for tbl in table:
-              tbody = tbl.find('tbody')
-              if tbody:
-                  for tr in tbody.find_all('tr'):
-                      cols = tr.find_all('td')
-                      cols = [col.text.strip() for col in cols]
-                      rows.append(cols)
+                  headers = []
+                  for tbl in table:
+                      thead = tbl.find('thead')
+                      if thead:
+                          headers.append([th.text.strip() for th in thead.find_all('th')])
 
-          # 將表格資料轉換為 JSON 格式
-          data_list = []
-          for row in rows:
-              if len(row) == len(headers[0]):  # 確保資料列長度與表頭長度一致
-                  try:
-                      row_data = {str(headers[0][i]): str(row[i]) for i in range(len(headers[0]))}
-                      data_list.append(row_data)
-                  except Exception as e:
-                      print(f"錯誤: {e}，資料列: {row}，表頭: {headers[0]}")
-              else:
-                  print(f"Len(row) 與 len(headers[0])不一致:")
+                  rows = []
+                  for tbl in table:
+                      tbody = tbl.find('tbody')
+                      if tbody:
+                          for tr in tbody.find_all('tr'):
+                              cols = tr.find_all('td')
+                              cols = [col.text.strip() for col in cols]
+                              rows.append(cols)
 
-          # 印出 JSON 資料
-          json_data = json.dumps(data_list, ensure_ascii=False, indent=4)
-          print(json_data)
+                  data_list = []
+                  for row in rows:
+                      if len(row) == len(headers[0]):
+                          try:
+                              row_data = {str(headers[0][i]): str(row[i]) for i in range(len(headers[0]))}
+                              data_list.append(row_data)
+                          except Exception as e:
+                              print(f"錯誤: {e}，資料列: {row}，表頭: {headers[0]}")
+                      else:
+                          print(f"Len(row) 與 len(headers[0])不一致:")
 
-          # 將 JSON 資料儲存至檔案
-          with open('docs/THSR_Holiday.json', 'w', encoding='utf-8') as json_file:
-              json_file.write(json_data)
+                  json_data = json.dumps(data_list, ensure_ascii=False, indent=4)
+                  print(json_data)
+
+                  with open('docs/THSR_Holiday.json', 'w', encoding='utf-8') as json_file:
+                      json_file.write(json_data)
+              except Exception as parse_error:
+                  print(f"解析 HTML 內容時發生錯誤: {parse_error}")
+
         shell: python
 
       - name: Configure git
         run: |
           git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@://github.com'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Commit and push changes
         run: |
-          git add docs/THSR_Holiday.json
+          # 檢查是否有檔案更新，有就加入；沒有也沒關係，直接靠 --allow-empty 頂住活躍度
+          if [ -f docs/THSR_Holiday.json ]; then
+            git add docs/THSR_Holiday.json
+          fi
           git commit --allow-empty -m "Scheduled update: $(date +'%Y-%m-%d %H:%M:%S') (UTC)"
           git push
         env:
